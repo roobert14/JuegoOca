@@ -37,9 +37,7 @@ document.querySelector("#conf").addEventListener("click", function() {
     }
 });
 
-// ==========================================
-// 4. CANVI DE NOM (S2 - S4)
-// ==========================================
+
 document.querySelector("#nom_send").addEventListener("click", function(e) {
     e.preventDefault();
     let nomInput = document.querySelector("#nom").value;
@@ -217,5 +215,5 @@ document.querySelector("#atras").addEventListener("click", function() {
     mostrarJSON();
 });
 
-// Dibuix inicial
+
 dibujarTablero();
