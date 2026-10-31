@@ -141,112 +141,118 @@ const preguntas = [
   { id: 100, categoria: "Videojuegos", pregunta: "¿Qué género de videojuego es Fortnite?", respuesta: "Battle royale" }
 ];
 
+const jugadores = {
+  J1: { nombre: "J1", casilla: 0, pierdeTurno: false },
+  J2: { nombre: "J2", casilla: 0, pierdeTurno: false }
+};
+
+let turnoActual = "J1";
+let enMovimiento = false;
+let juegoTerminado = false;
+
+
 const ficha1 = document.querySelector("#ficha1");
 const ficha2 = document.querySelector("#ficha2");
 const btnDado = document.querySelector("#btn-dado");
 const resultadoDado = document.querySelector("#resultado-dado");
 const indicadorTurno = document.querySelector("#indicador-turno");
-
-const estadoJuego = { J1: { casilla: 0 }, J2: { casilla: 0 } };
-let turnoActual = "J1";
-let enMovimiento = false;
+const btnReiniciar = document.querySelector("#btn-reiniciar");
 
 
 function normalizarTexto(texto) {
-  return texto.trim().toLowerCase().normalize("NFD");
+  return texto.trim().toLowerCase();
 }
 
 
-function moverFicha(jugador, numCasilla) {
+function moverFicha(jugadorKey, numCasilla) {
   const datosCasilla = tablero.find((c) => c.casilla === numCasilla);
   if (!datosCasilla) return;
-  const elementoFicha = jugador === "J1" ? ficha1 : ficha2;
-  const coords = datosCasilla.fichas[jugador];
+  const elementoFicha = jugadorKey === "J1" ? ficha1 : ficha2;
+  const coords = datosCasilla.fichas[jugadorKey];
   elementoFicha.style.left = `${coords.x}px`;
   elementoFicha.style.top = `${coords.y}px`;
 }
 
 
-function moverPasoAPaso(jugador, pasos) {
+function verificarCaptura(jugadorActivoKey) {
+  const oponenteKey = jugadorActivoKey === "J1" ? "J2" : "J1";
+  const posActivo = jugadores[jugadorActivoKey].casilla;
+  const posOponente = jugadores[oponenteKey].casilla;
+
+  if (posActivo > 0 && posActivo === posOponente) {
+    alert(`¡CAPTURA! ${jugadorActivoKey} ha caído en la casilla de ${oponenteKey}. La ficha ${oponenteKey} vuelve a la salida (Casilla 0).`);
+    jugadores[oponenteKey].casilla = 0;
+    moverFicha(oponenteKey, 0);
+  }
+}
+
+
+function moverPasoAPaso(jugadorKey, pasos) {
   enMovimiento = true;
   let pasosRestantes = pasos;
 
   const intervalo = setInterval(() => {
-    if (pasosRestantes > 0 && estadoJuego[jugador].casilla < 36) {
-      estadoJuego[jugador].casilla++;
-      moverFicha(jugador, estadoJuego[jugador].casilla);
+    if (pasosRestantes > 0 && jugadores[jugadorKey].casilla < 36) {
+      jugadores[jugadorKey].casilla++;
+      moverFicha(jugadorKey, jugadores[jugadorKey].casilla);
       pasosRestantes--;
     } else {
       clearInterval(intervalo);
-      const casillaActual = estadoJuego[jugador].casilla;
+      const casillaActual = jugadores[jugadorKey].casilla;
 
-      // Casillas especiales
+      if (casillaActual === 36) {
+        alert(`¡Ganó el ${jugadorKey}! 🎉`);
+        juegoTerminado = true;
+        enMovimiento = false;
+        return;
+      }
+
+      verificarCaptura(jugadorKey);
+
+
       if (casillaActual === 2) {
+        // Tipo 1: Avanza a casilla concreta
         alert("¡Casilla especial! Avanzas a la casilla 21.");
-        estadoJuego[jugador].casilla = 21;
-        moverFicha(jugador, 21);
-      } else if (casillaActual === 7) {
-        alert("¡Casilla especial! Avanzas a la casilla 11.");
-        estadoJuego[jugador].casilla = 11;
-        moverFicha(jugador, 11);
+        jugadores[jugadorKey].casilla = 21;
+        moverFicha(jugadorKey, 21);
+        verificarCaptura(jugadorKey);
+        cambiarTurno();
       } else if (casillaActual === 12) {
-        alert("¡Casilla especial! Vuelves al inicio.");
-        estadoJuego[jugador].casilla = 0;
-        moverFicha(jugador, 0);
-      } else if (casillaActual === 14) {
-        alert("¡Casilla especial! Avanzas a la casilla 29.");
-        estadoJuego[jugador].casilla = 29;
-        moverFicha(jugador, 29);
-      } else if (casillaActual === 22) {
-        alert("¡Casilla especial! Avanzas 2 casillas extra.");
-        enMovimiento = false;
-        moverPasoAPaso(jugador, 2);
-        return;
-      } else if (casillaActual === 25) {
-        alert("¡Casilla especial! Retrocedes a la casilla 9.");
-        estadoJuego[jugador].casilla = 9;
-        moverFicha(jugador, 9);
-      } else if (casillaActual === 30) {
-        alert("¡Casilla especial! Retrocedes a la casilla 27.");
-        estadoJuego[jugador].casilla = 27;
-        moverFicha(jugador, 27);
-      } else if (casillaActual === 33) {
-        alert("¡Casilla especial! Retrocedes a la casilla 20.");
-        estadoJuego[jugador].casilla = 20;
-        moverFicha(jugador, 20);
+        // Tipo 2: Torna a l'inici
+        alert("¡Casilla especial! Vuelves al inicio (Casilla 0).");
+        jugadores[jugadorKey].casilla = 0;
+        moverFicha(jugadorKey, 0);
+        cambiarTurno();
+      } else if (casillaActual === 9) {
+        // Tipo 3: Perd un torn
+        alert("¡Casilla especial! Pierdes tu próximo turno.");
+        jugadores[jugadorKey].pierdeTurno = true;
+        cambiarTurno();
+      } else {
+        // Casilla normal: Pregunta por alert/prompt
+        hacerPreguntaPorAlert(jugadorKey);
+        cambiarTurno();
       }
 
-
-      if (estadoJuego[jugador].casilla === 36) {
-        alert(`¡Ganó el ${jugador}! 🎉`);
-        enMovimiento = false;
-        return;
-      }
-
-
-      hacerPreguntaPorAlert();
-
-      turnoActual = turnoActual === "J1" ? "J2" : "J1";
-      indicadorTurno.textContent = turnoActual;
       enMovimiento = false;
     }
   }, 300);
 }
 
-
-function hacerPreguntaPorAlert() {
+// Pregunta en casilla normal
+function hacerPreguntaPorAlert(jugadorKey) {
   const indiceAzar = Math.floor(Math.random() * preguntas.length);
   const preguntaActual = preguntas[indiceAzar];
 
   const respuestaUsuario = prompt(
-    `[Turno ${turnoActual}]\n\nCategoría: ${preguntaActual.categoria}\nPregunta: ${preguntaActual.pregunta}`
+    `[Turno ${jugadorKey}]\n\nCategoría: ${preguntaActual.categoria}\nPregunta: ${preguntaActual.pregunta}`
   );
 
   if (respuestaUsuario === null || respuestaUsuario.trim() === "") {
-    alert(`❌ No respondiste a la pregunta. La Ficha ${turnoActual} retrocede 1 casilla.\n\nRespuesta esperada: ${preguntaActual.respuesta}`);
-    if (estadoJuego[turnoActual].casilla > 0) {
-      estadoJuego[turnoActual].casilla--;
-      moverFicha(turnoActual, estadoJuego[turnoActual].casilla);
+    alert(`❌ No respondiste a la pregunta. La Ficha ${jugadorKey} retrocede 1 casilla.\n\nRespuesta esperada: ${preguntaActual.respuesta}`);
+    if (jugadores[jugadorKey].casilla > 0) {
+      jugadores[jugadorKey].casilla--;
+      moverFicha(jugadorKey, jugadores[jugadorKey].casilla);
     }
     return;
   }
@@ -257,23 +263,60 @@ function hacerPreguntaPorAlert() {
   if (respUserNorm !== "" && respCorrectaNorm.includes(respUserNorm)) {
     alert("¡Correcto! Te mantienes en tu casilla.");
   } else {
-    alert(`❌ Respuesta incorrecta. La Ficha ${turnoActual} retrocede 1 casilla.\n\nRespuesta esperada: ${preguntaActual.respuesta}`);
-    if (estadoJuego[turnoActual].casilla > 0) {
-      estadoJuego[turnoActual].casilla--;
-      moverFicha(turnoActual, estadoJuego[turnoActual].casilla);
+    alert(`❌ Respuesta incorrecta. La Ficha ${jugadorKey} retrocede 1 casilla.\n\nRespuesta esperada: ${preguntaActual.respuesta}`);
+    if (jugadores[jugadorKey].casilla > 0) {
+      jugadores[jugadorKey].casilla--;
+      moverFicha(jugadorKey, jugadores[jugadorKey].casilla);
     }
   }
 }
 
+// Cambiar el turno
+function cambiarTurno() {
+  turnoActual = turnoActual === "J1" ? "J2" : "J1";
+  indicadorTurno.textContent = turnoActual;
+}
 
+// Tirar el dado
 function tirarDado() {
-  if (enMovimiento) return;
+  if (enMovimiento || juegoTerminado) return;
+
+  if (jugadores[turnoActual].pierdeTurno) {
+    alert(`El jugador ${turnoActual} pierde este turno.`);
+    jugadores[turnoActual].pierdeTurno = false;
+    cambiarTurno();
+    return;
+  }
+
   const valor = Math.floor(Math.random() * 6) + 1;
   resultadoDado.textContent = valor;
   moverPasoAPaso(turnoActual, valor);
 }
 
+// Reiniciar partida (Nova Partida)
+function reiniciarJuego() {
+  jugadores.J1.casilla = 0;
+  jugadores.J2.casilla = 0;
+  jugadores.J1.pierdeTurno = false;
+  jugadores.J2.pierdeTurno = false;
+  turnoActual = "J1";
+  enMovimiento = false;
+  juegoTerminado = false;
 
+  indicadorTurno.textContent = "J1";
+  resultadoDado.textContent = "-";
+
+  moverFicha("J1", 0);
+  moverFicha("J2", 0);
+  alert("¡Nueva partida iniciada! Las fichas han vuelto al inicio.");
+}
+
+// Eventos e inicialización
 btnDado.addEventListener("click", tirarDado);
+
+if (btnReiniciar) {
+  btnReiniciar.addEventListener("click", reiniciarJuego);
+}
+
 moverFicha("J1", 0);
 moverFicha("J2", 0);

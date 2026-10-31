@@ -55,6 +55,44 @@
     display: flex;
 }
 
-.boton{
-    
+.panel-control button {
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 12px auto;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#btn-dado {
+    background-color: #28a745; /* Verde */
+}
+
+#btn-dado:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+#btn-dado:active {
+    transform: translateY(0);
+}
+
+#btn-reiniciar {
+    background-color: #dc3545; /* Rojo */
+}
+
+#btn-reiniciar:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+#btn-reiniciar:active {
+    transform: translateY(0);
 }
