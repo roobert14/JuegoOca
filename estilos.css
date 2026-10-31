@@ -1,0 +1,41 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+header {
+  text-align: center;
+  background-color: black;
+  color: white;
+  padding: 10px 0;
+  margin-bottom: 20px;
+}
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
+}
+
+.galeria {
+  width: 25%;
+  padding: 20px;
+  border: 1px solid gray;
+}
+
+img {
+  width: 300px;
+  height: 200px;
+}
+
+p {
+  text-align: center;
+}
+
+.galeria_global{
+    display: flex;
+    gap: 15px;
+}
